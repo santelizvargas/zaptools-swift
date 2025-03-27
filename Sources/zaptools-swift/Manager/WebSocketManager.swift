@@ -1,64 +1,6 @@
 import SwiftUI
 import Combine
 
-// MARK: - WebSocketState Enum
-enum WebSocketState {
-    case success(WebSocketMessage)
-    case failure(Error)
-}
-
-// MARK: - WebSocketError Enum
-enum WebSocketError: Error {
-    case encodingFailed
-    case decodingFailed
-    case messageSendFailed(Error)
-    case receiveFailed(Error)
-    case maxRetriesReached
-}
-
-// MARK: - WebSocketMessage Model
-struct WebSocketMessage: Codable {
-    let eventName: String
-    let headers: [String: String]
-    let payload: String
-}
-
-protocol WebSocketMessageEncoding {
-    func encode(_ message: WebSocketMessage) throws -> String
-    func decode(_ jsonString: String) throws -> WebSocketMessage
-}
-
-// MARK: - WebSocketMessageEncoder
-final class WebSocketMessageEncoder: WebSocketMessageEncoding {
-    private let encoder: JSONEncoder
-    private let decoder: JSONDecoder
-    
-    init(
-        encoder: JSONEncoder = .init(),
-        decoder: JSONDecoder = .init()
-    ) {
-        self.encoder = encoder
-        self.decoder = decoder
-    }
-    
-    func encode(_ message: WebSocketMessage) throws -> String {
-        let jsonData = try encoder.encode(message)
-        
-        guard let jsonString = String(data: jsonData, encoding: .utf8) else {
-            throw WebSocketError.encodingFailed
-        }
-        return jsonString
-    }
-    
-    func decode(_ jsonString: String) throws -> WebSocketMessage {
-        guard let data = jsonString.data(using: .utf8) else {
-            throw WebSocketError.decodingFailed
-        }
-        return try decoder.decode(WebSocketMessage.self, from: data)
-    }
-}
-
-// MARK: - WebSocketManager
 @available(iOS 15.0, *)
 actor WebSocketManager: NSObject {
     private var webSocket: URLSessionWebSocketTask?
@@ -89,7 +31,6 @@ actor WebSocketManager: NSObject {
             delegate: nil,
             delegateQueue: nil
         )
-        
         super.init()
     }
     
